@@ -78,7 +78,7 @@ function buildRequesterConfig(headers, body = null) {
 async function handleApiError(error, token, requestBody = null) {
   const status = error.response?.status || error.status || 'Unknown';
   let errorBody = error.message;
-  if (requestBody) { try { const logBody = JSON.parse(JSON.stringify(requestBody)); if (logBody.request?.tools) logBody.request.tools = '<excluded>'; log.error('[API Error] Request Body:', JSON.stringify(logBody, null, 2)); } catch (e) { log.error('[API Error] Failed to stringify request body'); } }
+  if (requestBody) { try { const logBody = JSON.parse(JSON.stringify(requestBody)); if (logBody.request?.tools) { log.error('[API Error] Tool Summary:', logBody.request.tools.map((t, i) => `[${i}] ${t.functionDeclarations?.[0]?.name || 'unknown'}`).join(', ')); log.error('[API Error] tools[7] Full Schema:', JSON.stringify(logBody.request.tools[7], null, 2)); logBody.request.tools = '<excluded>'; } log.error('[API Error] Request Body:', JSON.stringify(logBody, null, 2)); } catch (e) { log.error('[API Error] Failed to stringify request body'); } }
       if (requestBody.request?.contents) { log.error('--- Request Content Indices ---'); requestBody.request.contents.forEach((msg, idx) => { const types = msg.parts?.map(p => { if (p.functionCall) return `ToolCall:${p.functionCall.name}`; if (p.functionResponse) return `ToolResp:${p.functionResponse.name}`; return 'Text'; }).join(', ') || 'Empty'; log.error(`[Index ${idx}] ${msg.role}: ${types.substring(0, 100)}`); }); log.error('-------------------------------'); }
   
   if (error.response?.data?.readable) {
