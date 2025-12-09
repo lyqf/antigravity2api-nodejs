@@ -172,7 +172,7 @@ function generateGenerationConfig(parameters, enableThinking, actualModelName){
     topK: parameters.top_k ?? config.defaults.top_k,
     temperature: parameters.temperature ?? config.defaults.temperature,
     candidateCount: 1,
-    maxOutputTokens: parameters.max_tokens ?? config.defaults.max_tokens,
+    maxOutputTokens: Math.max(parameters.max_tokens ?? config.defaults.max_tokens, enableThinking ? 16384 : 512),
     stopSequences: [
       "<|user|>",
       "<|bot|>",
@@ -190,10 +190,22 @@ function generateGenerationConfig(parameters, enableThinking, actualModelName){
   }
   return generationConfig
 }
-function convertOpenAIToolsToAntigravity(openaiTools){
+// Recursively sanitize schema for Claude compatibility
+function sanitizeSchemaForClaude(schema) {
+  if (!schema || typeof schema !== 'object') return schema;
+  const unsupportedKeys = ['default', 'minItems', 'maxItems', 'minLength', 'maxLength', 'pattern', 'minimum', 'maximum', 'exclusiveMinimum', 'exclusiveMaximum', 'multipleOf', 'format', 'examples', 'const'];
+  for (const key of unsupportedKeys) { delete schema[key]; }
+  if (schema.properties) { for (const prop in schema.properties) { sanitizeSchemaForClaude(schema.properties[prop]); } }
+  if (schema.items) { sanitizeSchemaForClaude(schema.items); }
+  if (schema.additionalProperties && typeof schema.additionalProperties === 'object') { sanitizeSchemaForClaude(schema.additionalProperties); }
+  return schema;
+}
+
+function convertOpenAIToolsToAntigravity(openaiTools, modelName){
   if (!openaiTools || openaiTools.length === 0) return [];
   return openaiTools.map((tool)=>{
     delete tool.function.parameters.$schema;
+    if (modelName && modelName.includes("claude")) { sanitizeSchemaForClaude(tool.function.parameters); }
     return {
       functionDeclarations: [
         {
@@ -239,7 +251,7 @@ function generateRequestBody(openaiMessages,modelName,parameters,openaiTools,tok
         role: "user",
         parts: [{ text: config.systemInstruction }]
       },
-      tools: convertOpenAIToolsToAntigravity(openaiTools),
+      tools: convertOpenAIToolsToAntigravity(openaiTools, actualModelName),
       toolConfig: {
         functionCallingConfig: {
           mode: "VALIDATED"
