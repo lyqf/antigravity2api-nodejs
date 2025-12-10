@@ -19,6 +19,6 @@
   },
   "other": {
     "timeout": 180000,
-    "skipProjectIdFetch": false
+    "skipProjectIdFetch": true
   }
 }
