@@ -66,7 +66,7 @@ function handleUserMessage(extracted, antigravityMessages){
     ]
   })
 }
-function handleAssistantMessage(message, antigravityMessages){
+function handleAssistantMessage(message, antigravityMessages, modelName){
   const lastMessage = antigravityMessages[antigravityMessages.length - 1];
   const hasToolCalls = message.tool_calls && message.tool_calls.length > 0;
   const hasContent = message.content && message.content.trim() !== '';
@@ -75,14 +75,17 @@ function handleAssistantMessage(message, antigravityMessages){
   const firstSignature = hasToolCalls && message.tool_calls[0]?.function?.thought_signature;
   
   const antigravityTools = hasToolCalls ? message.tool_calls.map((toolCall, idx) => {
-    // Store mapping for later response matching (NOT in part object)
+    // Generate ID if missing, or use existing
     const toolCallId = toolCall.id || `call_${simpleHash(toolCall.function.name + (toolCall.function.arguments || ''))}`;
-      toolCallIdToName.set(toolCall.id, toolCall.function.name);
-    }
+    
+    // Store mapping for later response matching
+    toolCallIdToName.set(toolCallId, toolCall.function.name);
+    
     const part = {
       functionCall: {
         name: toolCall.function.name,
-        args: JSON.parse(toolCall.function.arguments || '{}')
+        args: JSON.parse(toolCall.function.arguments || '{}'),
+        id: toolCallId // ALWAYS include ID
       }
     };
     // Apply thoughtSignature to ALL parallel function calls in the turn
@@ -135,6 +138,7 @@ function handleToolCall(message, antigravityMessages){
   const functionResponse = {
     functionResponse: {
       name: functionName,
+      id: message.tool_call_id, // Add ID here for Claude compatibility
       response: {
         output: message.content
       }
@@ -151,14 +155,14 @@ function handleToolCall(message, antigravityMessages){
     });
   }
 }
-function openaiMessageToAntigravity(openaiMessages){
+function openaiMessageToAntigravity(openaiMessages, modelName){
   const antigravityMessages = [];
   for (const message of openaiMessages) {
     if (message.role === "user" || message.role === "system") {
       const extracted = extractImagesFromContent(message.content);
       handleUserMessage(extracted, antigravityMessages);
     } else if (message.role === "assistant") {
-      handleAssistantMessage(message, antigravityMessages);
+      handleAssistantMessage(message, antigravityMessages, modelName);
     } else if (message.role === "tool") {
       handleToolCall(message, antigravityMessages);
     }
@@ -246,7 +250,7 @@ function generateRequestBody(openaiMessages,modelName,parameters,openaiTools,tok
     project: token.projectId,
     requestId: generateRequestId(),
     request: {
-      contents: openaiMessageToAntigravity(openaiMessages),
+      contents: openaiMessageToAntigravity(openaiMessages, actualModelName),
       systemInstruction: {
         role: "user",
         parts: [{ text: config.systemInstruction }]
