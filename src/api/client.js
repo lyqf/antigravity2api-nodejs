@@ -215,8 +215,8 @@ function parseAndEmitStreamChunk(line, state, callback) {
       const rawReason = data.response.candidates[0].finishReason;
       let mappedReason = null;
       
-      // Only map for Claude models as requested
-      if (state.model && state.model.includes('claude')) {
+      // Map for Claude and Gemini models
+      if (state.model && (state.model.includes('claude') || state.model.includes('gemini'))) {
          mappedReason = state.toolCalls.length > 0 ? 'tool_calls' : mapFinishReason(rawReason);
          callback({ type: 'finish', finishReason: mappedReason });
       }
@@ -425,8 +425,8 @@ export async function generateAssistantResponseNoStream(requestBody, token) {
       const rawReason = data.response.candidates[0].finishReason;
       let mappedReason = null;
       
-      // Only map for Claude models as requested
-      if (state.model && state.model.includes('claude')) {
+      // Map for Claude and Gemini models
+      if (state.model && (state.model.includes('claude') || state.model.includes('gemini'))) {
          mappedReason = state.toolCalls.length > 0 ? 'tool_calls' : mapFinishReason(rawReason);
          callback({ type: 'finish', finishReason: mappedReason });
       }
@@ -441,7 +441,7 @@ export async function generateAssistantResponseNoStream(requestBody, token) {
   // 生图模型：转换为 markdown 格式
   
   let finishReason = undefined;
-  if (requestBody.model && requestBody.model.includes('claude')) {
+  if (requestBody.model && (requestBody.model.includes('claude') || requestBody.model.includes('gemini'))) {
       const rawFinishReason = data.response?.candidates?.[0]?.finishReason;
       finishReason = toolCalls.length > 0 ? 'tool_calls' : mapFinishReason(rawFinishReason);
   }
