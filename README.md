@@ -17,10 +17,10 @@
         "transformer": { "use": ["anti-payload-fixer"] }
   
   },
-}
 ```
 
 * now structive thinking events now show think text in the conversation history. 
+
 * fix gemini   
 * fix subtl bug for claude messages.1.content.0.thinking.cache_control: Extra inputs are not permitted 
 
