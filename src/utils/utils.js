@@ -198,7 +198,7 @@ function handleAssistantMessage(message, antigravityMessages, modelName, msgInde
     if (hasContent) {
       // 1. Structured Thinking (from Router)
       if (message.thinking) {
-        log.info(`[THOUGHT-IN] structured thinking found: sig=${message.thinking.signature}`);
+        log.debug(`[THOUGHT-IN] structured thinking found: sig=${message.thinking.signature}`);
         parts.push({
           text: message.thinking.content,
           thought: true,
@@ -343,10 +343,10 @@ async function openaiMessageToAntigravity(openaiMessages, modelName) {
   // DEBUG: Log incoming assistant messages to see their structure
   openaiMessages.forEach((msg, i) => {
     if (msg.role === 'assistant') {
-      log.info(`[INCOMING-DEBUG] MSG[${i}] thinking=${!!msg.thinking} tool_calls=${msg.tool_calls?.length || 0}`);
+      log.debug(`[INCOMING-DEBUG] MSG[${i}] thinking=${!!msg.thinking} tool_calls=${msg.tool_calls?.length || 0}`);
       if (msg.tool_calls) {
         msg.tool_calls.forEach((tc, j) => {
-          log.info(`[INCOMING-DEBUG] MSG[${i}] TC[${j}] thought_signature=${tc.function?.thought_signature ? 'present' : 'missing'}`);
+          log.debug(`[INCOMING-DEBUG] MSG[${i}] TC[${j}] thought_signature=${tc.function?.thought_signature ? 'present' : 'missing'}`);
         });
       }
     }

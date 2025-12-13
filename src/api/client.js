@@ -183,7 +183,7 @@ function parseAndEmitStreamChunk(line, state, callback) {
 
   try {
     const data = JSON.parse(line.slice(6));
-    log.info('[LLM_RESPONSE] ' + JSON.stringify(data));
+    log.debug('[LLM_RESPONSE] ' + JSON.stringify(data));
     const parts = data.response?.candidates?.[0]?.content?.parts;
 
     if (parts) {
@@ -195,7 +195,8 @@ function parseAndEmitStreamChunk(line, state, callback) {
         }
 
         if (part.thought || part.thoughtSignature || part.thought_signature) {
-          log.info(`[THOUGHT DEBUG] thought=${part.thought} sig=${part.thoughtSignature || part.thought_signature} textlen=${(part.text || '').length}`);
+          const sig = part.thoughtSignature || part.thought_signature;
+          log.debug(`[THOUGHT DEBUG] thought=${part.thought} sig=${sig || 'undefined'} textlen=${(part.text || '').length}`);
         }
         if (part.thought === true) {
           // 思维链内容
@@ -424,7 +425,8 @@ export async function generateAssistantResponseNoStream(requestBody, token) {
     }
 
     if (part.thought || part.thoughtSignature || part.thought_signature) {
-      log.info(`[THOUGHT DEBUG] thought=${part.thought} sig=${part.thoughtSignature || part.thought_signature} textlen=${(part.text || '').length}`);
+      const sig = part.thoughtSignature || part.thought_signature;
+      log.debug(`[THOUGHT DEBUG] thought=${part.thought} sig=${sig || 'undefined'} textlen=${(part.text || '').length}`);
     }
     if (part.thought === true) {
       thinkingContent += part.text || '';
