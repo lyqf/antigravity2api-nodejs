@@ -196,7 +196,10 @@ function parseAndEmitStreamChunk(line, state, callback) {
 
         if (part.thought || part.thoughtSignature || part.thought_signature) {
           const sig = part.thoughtSignature || part.thought_signature;
-          log.debug(`[THOUGHT DEBUG] thought=${part.thought} sig=${sig || 'undefined'} textlen=${(part.text || '').length}`);
+          const thoughtStr = part.thought !== undefined ? part.thought : 'undefined';
+          // User request: if thought=undefined, then sig=undefined
+          const sigStr = part.thought !== undefined ? (sig || 'undefined') : 'undefined';
+          log.debug(`[THOUGHT DEBUG] thought=${thoughtStr} sig=${sigStr} textlen=${(part.text || '').length}`);
         }
         if (part.thought === true) {
           // 思维链内容
@@ -426,7 +429,10 @@ export async function generateAssistantResponseNoStream(requestBody, token) {
 
     if (part.thought || part.thoughtSignature || part.thought_signature) {
       const sig = part.thoughtSignature || part.thought_signature;
-      log.debug(`[THOUGHT DEBUG] thought=${part.thought} sig=${sig || 'undefined'} textlen=${(part.text || '').length}`);
+      const thoughtStr = part.thought !== undefined ? part.thought : 'undefined';
+      // User request: if thought=undefined, then sig=undefined
+      const sigStr = part.thought !== undefined ? (sig || 'undefined') : 'undefined';
+      log.debug(`[THOUGHT DEBUG] thought=${thoughtStr} sig=${sigStr} textlen=${(part.text || '').length}`);
     }
     if (part.thought === true) {
       thinkingContent += part.text || '';
